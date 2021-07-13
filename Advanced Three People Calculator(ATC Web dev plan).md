@@ -11,7 +11,9 @@
 <h2 id="1">概述</h2>
 
 -----
-ATC是一个为了<u>宿舍三人记录日常开销以及简化计算和平摊多人费用的应用网站</u>。其具体功能有: 
+ATC是一个为了<u>宿舍三人记录日常开销以及简化计算和平摊多人费用的应用网站</u>。
+
+其具体功能有:
 * <font color="blue">创建账单</font>
 * <font color="blue">添加账单用品</font>
 * <font color="blue">计算每人在账单里平均分摊的费用</font>
@@ -24,7 +26,9 @@ ATC是一个为了<u>宿舍三人记录日常开销以及简化计算和平摊�
 1. ATC Web (前端网页)\[<font color="orange">OFF</font>\]
 (TBD)
 2. ATC Web API (Spring后端) \[<font color="green">ON</font>\]
+
 [Sorce code: https://github.com/GareArc/ATCWebApi.git]
+
 [Release: https://github.com/GareArc/ATCWebApi/releases/tag/v0.0.1]
 
 -----
@@ -32,8 +36,14 @@ ATC是一个为了<u>宿舍三人记录日常开销以及简化计算和平摊�
 <h2 id="2.1">后端 API 接口设计</h2>
 
 -----
+* [1. order](#order)
+* [2. summary](#summary)
+
+<h4 id="order">Order</h4>
+
 * POST: /atc/api/{version}/order 
 上传账单,附加JSON Body。返回JSON包含此账单的uuid。
+  
 JSON Body示例:
 ```json    
 {   
@@ -48,7 +58,8 @@ JSON Body示例:
         {"price":20,"quantity":1,"isTaxed":false,"relation":"SHARED","shop":"UBER"}
     ],
     "Target1Info":"Charlie",
-    "Target2Info":"Gareth"
+    "Target2Info":"Gareth",
+    "Fees": {"electricityFee":0, "amazonFee":0, "internetFee":0, "otherFee":0}
 }
 ```
 返回JSON示例:
@@ -68,6 +79,7 @@ JSON Body示例:
 
 * GET: /atc/api/{version}/order/{id}
 id为请求账单对应的uuid, 返回JSON格式的对应账单。
+  
 请求示例：
 ```
 curl -X GET \
@@ -81,23 +93,6 @@ curl -X GET \
 {
     "orderDate": "2021-07-12T13:33:21.266",
     "uuid": "7d9b2ae7-6ace-4e33-ac91-25123b59db78",
-    "summary": {
-        "txtString": "-----------------------------------\n订单UUID: 7d9b2ae7-6ace-4e33-ac91-25123b59db78\n创建时间: 2021-07-12 13:33:21\n账单对象: Charlie, Gareth\n-----------------------------------\n三人物品: \n    Item: (普通超市) (三人) (无税) $10.00 * 1\n-----------------------------------\nCharlie: \n    Item: (普通超市) (个人) (有税) $10.00 * 1\n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nGareth: \n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nCharlie: 25.762999999999998Gareth: 14.463000000000001\nEnd.",
-        "target1Info": "Charlie",
-        "target2Info": "Gareth",
-        "itemsForTarget1": [
-            "Item: (普通超市) (个人) (有税) $10.00 * 1",
-            "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
-        ],
-        "itemsForTarget2": [
-            "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
-        ],
-        "itemsForAll": [
-            "Item: (普通超市) (三人) (无税) $10.00 * 1"
-        ],
-        "totalTaregt1": 25.762999999999998,
-        "totalTaregt2": 14.463000000000001
-    },
     "Target1Info": "Charlie",
     "Target2Info": "Gareth",
     "ThreePeople": [
@@ -137,44 +132,20 @@ curl -X GET \
             "isTaxed": false,
             "shop": "UBER"
         }
-    ]
-}
-```
-
-* Get: /atc/api/{version}/order/summary/{id}
-id为请求账单对应uuid，返回JSON包含对应账单的summary信息。
-请求示例:
-```
-curl -X GET \
-  www.garethcxy.tk:8080/atc/api/1.0/order/summary/7d9b2ae7-6ace-4e33-ac91-25123b59db78 \
-  -H 'Content-Type: application/json' \
-  -H 'Postman-Token: be01a8cc-70e4-402c-948d-30fd08596967' \
-  -H 'cache-control: no-cache'
-```
-返回JSON示例:
-```json
-{
-    "txtString": "-----------------------------------\n订单UUID: 7d9b2ae7-6ace-4e33-ac91-25123b59db78\n创建时间: 2021-07-12 13:33:21\n账单对象: Charlie, Gareth\n-----------------------------------\n三人物品: \n    Item: (普通超市) (三人) (无税) $10.00 * 1\n-----------------------------------\nCharlie: \n    Item: (普通超市) (个人) (有税) $10.00 * 1\n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nGareth: \n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nCharlie: 25.762999999999998Gareth: 14.463000000000001\nEnd.",
-    "target1Info": "Charlie",
-    "target2Info": "Gareth",
-    "itemsForTarget1": [
-        "Item: (普通超市) (个人) (有税) $10.00 * 1",
-        "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
     ],
-    "itemsForTarget2": [
-        "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
-    ],
-    "itemsForAll": [
-        "Item: (普通超市) (三人) (无税) $10.00 * 1"
-    ],
-    "totalTaregt1": 25.762999999999998,
-    "totalTaregt2": 14.463000000000001
+    "Fees": {
+      "electricityFee": 0.0,
+      "amazonFee": 0.0,
+      "internetFee": 0.0,
+      "otherFee": 0.0
+    }
 }
 ```
 
 * POST: /atc/api/{version}/order/del/{id}
 删除某个账单。
 id为对应账单uuid，返回JSON包含结果true/false。
+  
 请求示例:
 ```
 curl -X GET \
@@ -195,6 +166,46 @@ true
 ```json
 true
 ```
+
+<h4 id="summary">Summary</h4>
+
+* Get: /atc/api/{version}/summary/{id}
+  id为请求账单对应uuid，返回JSON包含对应账单的summary信息。
+  
+请求示例:
+```
+curl -X GET \
+  www.garethcxy.tk:8080/atc/api/1.0/summary/7d9b2ae7-6ace-4e33-ac91-25123b59db78 \
+  -H 'Content-Type: application/json' \
+  -H 'Postman-Token: be01a8cc-70e4-402c-948d-30fd08596967' \
+  -H 'cache-control: no-cache'
+```
+返回JSON示例:
+```json
+{
+    "uuid": "7d9b2ae7-6ace-4e33-ac91-25123b59db78",
+    "txtString": "-----------------------------------\n订单UUID: 7d9b2ae7-6ace-4e33-ac91-25123b59db78\n创建时间: 2021-07-12 13:33:21\n账单对象: Charlie, Gareth\n-----------------------------------\n三人物品: \n    Item: (普通超市) (三人) (无税) $10.00 * 1\n-----------------------------------\nCharlie: \n    Item: (普通超市) (个人) (有税) $10.00 * 1\n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nGareth: \n    Item: (Uber Eats) (双人) (无税) $20.00 * 1\n-----------------------------------\nCharlie: 25.762999999999998Gareth: 14.463000000000001\nEnd.",
+    "target1Info": "Charlie",
+    "target2Info": "Gareth",
+    "itemsForTarget1": [
+        "Item: (普通超市) (个人) (有税) $10.00 * 1",
+        "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
+    ],
+    "itemsForTarget2": [
+        "Item: (Uber Eats) (双人) (无税) $20.00 * 1"
+    ],
+    "itemsForAll": [
+        "Item: (普通超市) (三人) (无税) $10.00 * 1"
+    ],
+    "totalTaregt1": 25.762999999999998,
+    "totalTaregt2": 14.463000000000001,
+    "electricityFee": 0.0,
+    "amazonFee": 0.0,
+    "internetFee": 0.0,
+    "otherFee": 0.0
+}
+```
+
 -----
 
 <h2 id="2.2">前端网页逻辑设计</h2>
